@@ -134,7 +134,7 @@ void ATheophileCharacter::Poisonned()
 
 void ATheophileCharacter::StopPoison()
 {
-	GetWorld()->GetTimerManager().PauseTimer(TimerHandle, this, &ATheophileCharacter::Poisonned, PoisonTrap->Period, true);
+	GetWorld()->GetTimerManager().PauseTimer(TimerHandle);
 }
 
 void ATheophileCharacter::RandomEffect()
@@ -144,22 +144,61 @@ void ATheophileCharacter::RandomEffect()
 	if (temp >= A) //if between 0.6 and 1 (40%)
 	{
 		Hp += 0.1;
-		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a Common Object !"));
+		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a A Object !"));
 	}
 	if (temp < A && temp >= B) //if between 0.2 and 0.6 (40%)
 	{
 		Hp -= 0.1;
-		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a Rare Object !"));
+		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a B Object !"));
 	}
 	if (temp < B && temp >= C) //if between 0 and 0.1 (10%)
 	{
 		Hp += 0.5;
-		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a Legendary Object !"));
+		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a C Object !"));
 	}
 	if (temp < D && temp >= 0) //if between 0 and 0.1 (10%)
 	{
 		Hp -= 0.5;
-		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a Legendary Object !"));
+		GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, TEXT("Congratulations ! You have acquired a D Object !"));
+	}
+}
+
+void ATheophileCharacter::SortZ()
+{
+	TArray<TEnumAsByte<EObjectTypeQuery>> query;
+	TArray<AActor*> ignore;
+	TArray<AActor*> EnnemySortArray;
+	FVector MyLocation = this->GetActorLocation();
+	UKismetSystemLibrary::SphereOverlapActors(this, MyLocation, 1000000, query, AActor::StaticClass(), ignore, EnnemySortArray);
+
+	FString result = FString::Printf(TEXT("Hit %d actors."), EnnemySortArray.Num());
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Orange, result);
+
+	float HigherZ = 1;
+	float ActorZ = 0;
+	//if (EnnemySortArray.Last() != nullptr)
+	for (int i = 0; i <= EnnemySortArray.Num(); i++)
+	{
+		AActor* HighestZ = Cast<AActor>(EnnemySortArray[0]);
+		for (auto Cubemon : EnnemySortArray)
+		{
+			auto actor = Cast<AActor>(Cubemon);
+			if (actor != nullptr)
+			{
+				ActorZ = actor->GetActorLocation().Z;
+				if (ActorZ < HigherZ)
+				{
+					HigherZ = ActorZ;
+					HighestZ = Cast<AActor>(actor);
+				}
+			}
+		}
+		if (HighestZ != nullptr)
+		{
+			//FString result = FString::Printf(TEXT("this is %d actor."), LowestHp->GetName());
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Orange, HighestZ->GetName());
+			EnnemySortArray.Remove(HighestZ);
+		}
 	}
 }
 
@@ -171,6 +210,7 @@ void ATheophileCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	// Bind Shoot events
 	PlayerInputComponent->BindAction("FireLaser", IE_Pressed, this, &ATheophileCharacter::FireLaser);
 	PlayerInputComponent->BindAction("RandomEffect", IE_Pressed, this, &ATheophileCharacter::RandomEffect);
+	PlayerInputComponent->BindAction("SortZ", IE_Pressed, this, &ATheophileCharacter::SortZ);
 
 	// Bind jump events
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);

@@ -103,7 +103,8 @@ protected:
 	const float C = 0.1;//entre 0.1 et 0.2 = 10%
 	const float D = 0.1;//entre 0 et 0.1 = 10%
 
-	void StopPoisonned();
+	void SortZ();
+	void StopPoison();
 	void Poisonned();
 	void RandomEffect();
 
